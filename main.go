@@ -1,9 +1,9 @@
 package main
 
 import (
-	"fmt"
+	"api-nicu/api"
 )
 
 func main() {
-	fmt.Println("fisrt log")
+	api.Run()
 }
