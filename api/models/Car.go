@@ -2,6 +2,7 @@ package models
 
 import (
 	"errors"
+	"fmt"
 	"html"
 	"strings"
 	"time"
@@ -99,11 +100,13 @@ func (p *Car) UpdateACar(db *gorm.DB, pid uint64) (*Car, error) {
 	var err error
 	db = db.Debug().Model(&Car{}).Where("id = ?", pid).Take(&Car{}).UpdateColumns(
 		map[string]interface{}{
+			"user_id":    p.User_id,
 			"brand":      p.Brand,
 			"year":       p.Year,
 			"doors":      p.Doors,
 			"hp":         p.Hp,
 			"seats":      p.Seats,
+			"images":     p.Images,
 			"insurance":  p.Insurance,
 			"updated_at": time.Now(),
 		},
@@ -112,12 +115,14 @@ func (p *Car) UpdateACar(db *gorm.DB, pid uint64) (*Car, error) {
 	if err != nil {
 		return &Car{}, err
 	}
-	if p.ID != 0 {
+	fmt.Println("USerr:", p.User_id)
+	fmt.Println("owner:", p.Owner)
+	/*if p.ID != 0 { LIVIU AREGLA ESTO, cuando haces un UPDATE no guarda bien el owner.Aun que  no lo necesitas
 		err = db.Debug().Model(&User{}).Where("id = ?", p.User_id).Take(&p.Owner).Error
 		if err != nil {
 			return &Car{}, err
 		}
-	}
+	}*/
 	return p, nil
 }
 

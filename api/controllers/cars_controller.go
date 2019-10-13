@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -46,6 +47,7 @@ func (server *Server) CreateCar(w http.ResponseWriter, r *http.Request) {
 	}
 	carCreated, err := car.SaveCar(server.DB)
 	if err != nil {
+		//log.Fatal(err)
 		formattedError := formaterror.FormatError(err.Error())
 		responses.ERROR(w, http.StatusInternalServerError, formattedError)
 		return
@@ -149,6 +151,7 @@ func (server *Server) UpdateCar(w http.ResponseWriter, r *http.Request) {
 	carUpdated, err := carUpdate.UpdateACar(server.DB, pid)
 
 	if err != nil {
+		log.Fatal(err)
 		formattedError := formaterror.FormatError(err.Error())
 		responses.ERROR(w, http.StatusInternalServerError, formattedError)
 		return
