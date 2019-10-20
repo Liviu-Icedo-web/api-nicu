@@ -8,11 +8,12 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/gorilla/mux"
 	"api-nicu/api/auth"
 	"api-nicu/api/models"
 	"api-nicu/api/responses"
 	"api-nicu/api/utils/formaterror"
+
+	"github.com/gorilla/mux"
 )
 
 func (server *Server) CreateUser(w http.ResponseWriter, r *http.Request) {
@@ -49,7 +50,6 @@ func (server *Server) CreateUser(w http.ResponseWriter, r *http.Request) {
 func (server *Server) GetUsers(w http.ResponseWriter, r *http.Request) {
 
 	user := models.User{}
-
 	users, err := user.FindAllUsers(server.DB)
 	if err != nil {
 		responses.ERROR(w, http.StatusInternalServerError, err)

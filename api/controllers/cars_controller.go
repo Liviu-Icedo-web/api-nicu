@@ -52,6 +52,11 @@ func (server *Server) CreateCar(w http.ResponseWriter, r *http.Request) {
 		responses.ERROR(w, http.StatusInternalServerError, formattedError)
 		return
 	}
+
+	if r.Method == "OPTIONS" {
+		fmt.Println("OOOO", r)
+	}
+
 	w.Header().Set("Location", fmt.Sprintf("%s%s/%d", r.Host, r.URL.Path, carCreated.ID))
 	responses.JSON(w, http.StatusCreated, carCreated)
 }
@@ -65,6 +70,8 @@ func (server *Server) GetCars(w http.ResponseWriter, r *http.Request) {
 		responses.ERROR(w, http.StatusInternalServerError, err)
 		return
 	}
+
+	fmt.Println("METHOOOD BAAA", r.Method)
 	responses.JSON(w, http.StatusOK, cars)
 }
 

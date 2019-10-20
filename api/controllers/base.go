@@ -32,7 +32,7 @@ func (server *Server) Initialize(Dbdriver, DbUser, DbPassword, DbPort, DbHost, D
 	//server.DB.Debug().AutoMigrate(&models.User{}) //, &models.Post{} Liviu No te olvide aqui es donde tiened que añadir los siguentes modelos
 
 	server.Router = mux.NewRouter()
-
+	mux.CORSMethodMiddleware(server.Router)
 	server.initializeRoutes()
 }
 
