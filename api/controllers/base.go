@@ -7,6 +7,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
+	"github.com/rs/cors"
 
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
@@ -32,11 +33,21 @@ func (server *Server) Initialize(Dbdriver, DbUser, DbPassword, DbPort, DbHost, D
 	//server.DB.Debug().AutoMigrate(&models.User{}) //, &models.Post{} Liviu No te olvide aqui es donde tiened que añadir los siguentes modelos
 
 	server.Router = mux.NewRouter()
-	mux.CORSMethodMiddleware(server.Router)
 	server.initializeRoutes()
 }
 
 func (server *Server) Run(addr string) {
 	fmt.Println("Listening to port 8090")
-	log.Fatal(http.ListenAndServe(addr, server.Router))
+	c := cors.New(cors.Options{
+		AllowedOrigins:   []string{"*"},
+		AllowCredentials: true,
+		//AllowedHeaders:     []string{"X-Requested-With,Origin, Accept, Content-Type, Content-Length, X-Requested-With, Accept-Encoding, X-CSRF-Token, Authorization, X-PINGOTHER"},
+		AllowedMethods:     []string{"GET", "HEAD", "POST", "PUT", "OPTIONS"},
+		AllowedHeaders:     []string{"Content-Type", "Bearer", "Bearer ", "content-type", "Origin", "Accept", "Authorization"},
+		Debug:              true,
+		OptionsPassthrough: true,
+	})
+
+	handler := c.Handler(server.Router)
+	log.Fatal(http.ListenAndServe(addr, handler))
 }

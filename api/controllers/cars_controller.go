@@ -30,6 +30,8 @@ func (server *Server) CreateCar(w http.ResponseWriter, r *http.Request) {
 		responses.ERROR(w, http.StatusUnprocessableEntity, err)
 		return
 	}
+
+	fmt.Println("CCCC", car)
 	car.Prepare()
 	err = car.Validate()
 	if err != nil {
