@@ -60,14 +60,14 @@ func (server *Server) GetUsers(w http.ResponseWriter, r *http.Request) {
 
 func (server *Server) GetUser(w http.ResponseWriter, r *http.Request) {
 
-	vars := mux.Vars(r)
-	uid, err := strconv.ParseUint(vars["id"], 10, 32)
+	tokenID, err := auth.ExtractTokenID(r)
+
 	if err != nil {
 		responses.ERROR(w, http.StatusBadRequest, err)
 		return
 	}
 	user := models.User{}
-	userGotten, err := user.FindUserByID(server.DB, uint32(uid))
+	userGotten, err := user.FindUserByID(server.DB, uint32(tokenID))
 	if err != nil {
 		responses.ERROR(w, http.StatusBadRequest, err)
 		return
