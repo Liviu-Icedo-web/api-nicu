@@ -12,7 +12,7 @@ import (
 func SetMiddlewareJSON(next http.HandlerFunc) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("MMM", r)
+		fmt.Println("*** SetMiddlewareJSON", r, "\n")
 		if r.Method == "OPTIONS" {
 			return
 		}
@@ -30,7 +30,7 @@ func SetMiddlewareJSON(next http.HandlerFunc) http.HandlerFunc {
 
 func SetMiddlewareAuthentication(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("MMM", r)
+		fmt.Println("**** SetMiddlewareAuthentication", r, "\n")
 		err := auth.TokenValid(r)
 		if err != nil {
 			responses.ERROR(w, http.StatusUnauthorized, errors.New("Unauthorized"))

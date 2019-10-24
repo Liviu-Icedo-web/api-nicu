@@ -42,11 +42,14 @@ func TokenValid(r *http.Request) error {
 
 func ExtractToken(r *http.Request) string {
 	keys := r.URL.Query()
+	fmt.Println("*** KEYS", keys, "\n")
+
 	token := keys.Get("token")
 	if token != "" {
 		return token
 	}
 	bearerToken := r.Header.Get("Authorization")
+	fmt.Println("*** bearerToken", bearerToken, "\n")
 	if len(strings.Split(bearerToken, " ")) == 2 {
 		return strings.Split(bearerToken, " ")[1]
 	}

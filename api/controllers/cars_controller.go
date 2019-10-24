@@ -31,7 +31,7 @@ func (server *Server) CreateCar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println("CCCC", car)
+	fmt.Println("*** CreateCar", car, "\n")
 	car.Prepare()
 	err = car.Validate()
 	if err != nil {
@@ -39,6 +39,10 @@ func (server *Server) CreateCar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	uid, err := auth.ExtractTokenID(r)
+	car.User_id = uid
+	fmt.Println("*** UID", uid, "\n")
+	fmt.Println("*** CAR USER_ID", car.User_id, "\n")
+
 	if err != nil {
 		responses.ERROR(w, http.StatusUnauthorized, errors.New("Unauthorized"))
 		return
@@ -49,14 +53,10 @@ func (server *Server) CreateCar(w http.ResponseWriter, r *http.Request) {
 	}
 	carCreated, err := car.SaveCar(server.DB)
 	if err != nil {
-		//log.Fatal(err)
+
 		formattedError := formaterror.FormatError(err.Error())
 		responses.ERROR(w, http.StatusInternalServerError, formattedError)
 		return
-	}
-
-	if r.Method == "OPTIONS" {
-		fmt.Println("OOOO", r)
 	}
 
 	w.Header().Set("Location", fmt.Sprintf("%s%s/%d", r.Host, r.URL.Path, carCreated.ID))
@@ -73,7 +73,6 @@ func (server *Server) GetCars(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println("METHOOOD BAAA", r.Method)
 	responses.JSON(w, http.StatusOK, cars)
 }
 
