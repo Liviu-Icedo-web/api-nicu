@@ -31,7 +31,6 @@ func (server *Server) CreateCar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println("*** CreateCar", car, "\n")
 	car.Prepare()
 	err = car.Validate()
 	if err != nil {
@@ -40,8 +39,6 @@ func (server *Server) CreateCar(w http.ResponseWriter, r *http.Request) {
 	}
 	uid, err := auth.ExtractTokenID(r)
 	car.User_id = uid
-	fmt.Println("*** UID", uid, "\n")
-	fmt.Println("*** CAR USER_ID", car.User_id, "\n")
 
 	if err != nil {
 		responses.ERROR(w, http.StatusUnauthorized, errors.New("Unauthorized"))
@@ -106,6 +103,7 @@ func (server *Server) UpdateCar(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//CHeck if the auth token is valid and  get the user id from it
+
 	uid, err := auth.ExtractTokenID(r)
 	if err != nil {
 		responses.ERROR(w, http.StatusUnauthorized, errors.New("Unauthorized"))
@@ -121,7 +119,8 @@ func (server *Server) UpdateCar(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Printf("User id: %v", uid)
-	fmt.Printf("Car id: %v", car.User_id)
+	fmt.Printf("\n Car id: %v", car.ID)
+	fmt.Printf("\n First check: %v", car.User_id)
 
 	// If a user attempt to update a car not belonging to him
 	if uid != car.User_id {
@@ -131,6 +130,7 @@ func (server *Server) UpdateCar(w http.ResponseWriter, r *http.Request) {
 	// Read the data cared
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
+
 		responses.ERROR(w, http.StatusUnprocessableEntity, err)
 		return
 	}
@@ -139,11 +139,16 @@ func (server *Server) UpdateCar(w http.ResponseWriter, r *http.Request) {
 	carUpdate := models.Car{}
 	err = json.Unmarshal(body, &carUpdate)
 	if err != nil {
+		log.Fatalln(err)
 		responses.ERROR(w, http.StatusUnprocessableEntity, err)
 		return
 	}
 
 	//Also check if the request user id is equal to the one gotten from token
+
+	fmt.Printf("\n User id %v", uid)
+	fmt.Printf("\n carUpdate.User_id %v", carUpdate.User_id)
+	fmt.Printf("\n **** carUpdate %v", carUpdate)
 	if uid != carUpdate.User_id {
 		responses.ERROR(w, http.StatusUnauthorized, errors.New("Unauthorized"))
 		return
@@ -151,7 +156,9 @@ func (server *Server) UpdateCar(w http.ResponseWriter, r *http.Request) {
 
 	carUpdate.Prepare()
 	err = carUpdate.Validate()
+	fmt.Printf("Prepare  \n")
 	if err != nil {
+		fmt.Printf("Prepare  *****\n")
 		responses.ERROR(w, http.StatusUnprocessableEntity, err)
 		return
 	}
