@@ -42,7 +42,7 @@ func (server *Server) Run(addr string) {
 		AllowedOrigins:   []string{"*"},
 		AllowCredentials: true,
 		//AllowedHeaders:     []string{"X-Requested-With,Origin, Accept, Content-Type, Content-Length, X-Requested-With, Accept-Encoding, X-CSRF-Token, Authorization, X-PINGOTHER"},
-		AllowedMethods:     []string{"GET", "HEAD", "POST", "PUT", "OPTIONS"},
+		AllowedMethods:     []string{"GET", "HEAD", "POST", "DELETE", "PUT", "OPTIONS"},
 		AllowedHeaders:     []string{"Content-Type", "Bearer", "Bearer ", "content-type", "Origin", "Accept", "Authorization"},
 		Debug:              true,
 		OptionsPassthrough: true,
