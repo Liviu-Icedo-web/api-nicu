@@ -15,7 +15,7 @@ type Rental struct {
 	User           User      `json:"user"`
 	PickupLocation uint32    `gorm:"int" json:"pickup_location"`
 	StartDate      time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"start_date"`
-	EndDate        time.Time `json:"start_date"`
+	EndDate        time.Time `json:"end_date"`
 	CreatedAt      time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt      time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
 }
@@ -30,21 +30,13 @@ func (u *Rental) Prepare() {
 
 func (p *Rental) Validate() error {
 
-	if _, ok := p.StartDate.(time.Time); ok {
-		// it is of type time.Time
-	} else {
-		// not of type time.Time, or it is nil
-	}
-
-	if p.StartDate.(time.Time) {
+	if p.StartDate.IsZero() {
 		return errors.New("Required Start Date")
 	}
-	if p.Year < 1 {
-		return errors.New("Required Year")
+	if p.EndDate.IsZero() {
+		return errors.New("Required End Date")
 	}
-	if p.Seats < 1 {
-		return errors.New("Required Seats")
-	}
+
 	return nil
 }
 
@@ -55,7 +47,7 @@ func (p *Rental) SaveRental(db *gorm.DB) (*Rental, error) {
 		return &Rental{}, err
 	}
 	if p.ID != 0 {
-		err = db.Debug().Model(&User{}).Where("id = ?", p.User_id).Take(&p.Owner).Error
+		err = db.Debug().Model(&Rental{}).Where("id = ?", p.UserID).Take(&p.User).Error
 		if err != nil {
 			return &Rental{}, err
 		}
@@ -72,7 +64,7 @@ func (p *Rental) FindAllRentals(db *gorm.DB) (*[]Rental, error) {
 	}
 	if len(posts) > 0 {
 		for i, _ := range posts {
-			err := db.Debug().Model(&User{}).Where("id = ?", posts[i].User_id).Take(&posts[i].Owner).Error
+			err := db.Debug().Model(&User{}).Where("id = ?", posts[i].UserID).Take(&posts[i].User).Error
 			if err != nil {
 				return &[]Rental{}, err
 			}
@@ -88,7 +80,7 @@ func (p *Rental) FindRentalByID(db *gorm.DB, pid uint64) (*Rental, error) {
 		return &Rental{}, err
 	}
 	if p.ID != 0 {
-		err = db.Debug().Model(&User{}).Where("id = ?", p.User_id).Take(&p.Owner).Error
+		err = db.Debug().Model(&Rental{}).Where("id = ?", p.UserID).Take(&p.User).Error
 		if err != nil {
 			return &Rental{}, err
 		}
@@ -101,15 +93,12 @@ func (p *Rental) UpdateARental(db *gorm.DB, pid uint64) (*Rental, error) {
 	var err error
 	db = db.Debug().Model(&Rental{}).Where("id = ?", pid).Take(&Rental{}).UpdateColumns(
 		map[string]interface{}{
-			"user_id":    p.User_id,
-			"brand":      p.Brand,
-			"year":       p.Year,
-			"doors":      p.Doors,
-			"hp":         p.Hp,
-			"seats":      p.Seats,
-			"images":     p.Images,
-			"insurance":  p.Insurance,
-			"updated_at": time.Now(),
+			"car_id":          p.CarID,
+			"user_id":         p.UserID,
+			"pick_uplocation": p.PickupLocation,
+			"start_date":      p.StartDate,
+			"end_date":        p.EndDate,
+			"updated_at":      time.Now(),
 		},
 	)
 	err = db.Debug().Model(&Rental{}).Where("id = ?", pid).Take(&p).Error

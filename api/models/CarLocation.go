@@ -9,14 +9,15 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
+//COmment
 type CarLocation struct {
 	ID        uint32    `gorm:"primary_key;auto_increment" json:"id"`
-	Car_id    uint32    `gorm:"int" json:"user_id"`
+	CarID     uint32    `gorm:"int" json:"user_id"`
 	Car       Car       `json:"car"`
-	Street    string    `gorm: json:"street"`
-	City      string    `gorm: json:"city"`
-	State     string    `gorm: json:"state"`
-	Country   string    `gorm: json:"country"`
+	Street    string    `json:"street"`
+	City      string    `json:"city"`
+	State     string    `json:"state"`
+	Country   string    `json:"country"`
 	CreatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
 }
@@ -53,7 +54,7 @@ func (p *CarLocation) SaveCarLocation(db *gorm.DB) (*CarLocation, error) {
 		return &CarLocation{}, err
 	}
 	if p.ID != 0 {
-		err = db.Debug().Model(&Car{}).Where("id = ?", p.Car_id).Take(&p.Car).Error
+		err = db.Debug().Model(&Car{}).Where("id = ?", p.CarID).Take(&p.Car).Error
 		if err != nil {
 			return &CarLocation{}, err
 		}
@@ -70,7 +71,7 @@ func (p *CarLocation) FindAllCarsLocation(db *gorm.DB) (*[]CarLocation, error) {
 	}
 	if len(posts) > 0 {
 		for i, _ := range posts {
-			err := db.Debug().Model(&CarLocation{}).Where("id = ?", posts[i].Car_id).Take(&posts[i].Car).Error
+			err := db.Debug().Model(&CarLocation{}).Where("id = ?", posts[i].CarID).Take(&posts[i].Car).Error
 			if err != nil {
 				return &[]CarLocation{}, err
 			}
@@ -86,7 +87,7 @@ func (p *CarLocation) FindCarLocationByID(db *gorm.DB, pid uint64) (*CarLocation
 		return &CarLocation{}, err
 	}
 	if p.ID != 0 {
-		err = db.Debug().Model(&Car{}).Where("id = ?", p.Car_id).Take(&p.Car).Error
+		err = db.Debug().Model(&Car{}).Where("id = ?", p.CarID).Take(&p.Car).Error
 		if err != nil {
 			return &CarLocation{}, err
 		}
@@ -99,7 +100,7 @@ func (p *CarLocation) UpdateACarLocation(db *gorm.DB, pid uint64) (*CarLocation,
 	var err error
 	db = db.Debug().Model(&CarLocation{}).Where("id = ?", pid).Take(&CarLocation{}).UpdateColumns(
 		map[string]interface{}{
-			"car_id":     p.Car_id,
+			"car_id":     p.CarID,
 			"Street":     p.Street,
 			"city":       p.City,
 			"sate":       p.State,
