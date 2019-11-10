@@ -2,6 +2,7 @@ package models
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -10,9 +11,7 @@ import (
 type Rental struct {
 	ID             uint32    `gorm:"primary_key;auto_increment" json:"id"`
 	CarID          uint32    `gorm:"int" json:"Car_id"`
-	Car            Car       `json:"Car"`
 	UserID         uint32    `gorm:"int" json:"user_id"`
-	User           User      `json:"user"`
 	PickupLocation uint32    `gorm:"int" json:"pickup_location"`
 	StartDate      time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"start_date"`
 	EndDate        time.Time `json:"end_date"`
@@ -46,46 +45,39 @@ func (p *Rental) SaveRental(db *gorm.DB) (*Rental, error) {
 	if err != nil {
 		return &Rental{}, err
 	}
-	if p.ID != 0 {
-		err = db.Debug().Model(&Rental{}).Where("id = ?", p.UserID).Take(&p.User).Error
-		if err != nil {
-			return &Rental{}, err
-		}
-	}
 	return p, nil
 }
 
-func (p *Rental) FindAllRentals(db *gorm.DB) (*[]Rental, error) {
+func (p *Rental) FindUserRentals(db *gorm.DB) (*[]Rental, error) {
 	var err error
 	posts := []Rental{}
 	err = db.Debug().Model(&Rental{}).Limit(100).Find(&posts).Error
 	if err != nil {
 		return &[]Rental{}, err
 	}
-	if len(posts) > 0 {
-		for i, _ := range posts {
-			err := db.Debug().Model(&User{}).Where("id = ?", posts[i].UserID).Take(&posts[i].User).Error
-			if err != nil {
-				return &[]Rental{}, err
-			}
-		}
-	}
 	return &posts, nil
 }
 
-func (p *Rental) FindRentalByID(db *gorm.DB, pid uint64) (*Rental, error) {
+func (p *Rental) FindRentalUserID(db *gorm.DB, pid uint64) (*[]Rental, error) {
 	var err error
-	err = db.Debug().Model(&Rental{}).Where("id = ?", pid).Take(&p).Error
+	r := []Rental{}
+	err = db.Debug().Model(&Rental{}).Where("user_id = ?", pid).Find(&r).Error
 	if err != nil {
-		return &Rental{}, err
+		return &[]Rental{}, err
 	}
-	if p.ID != 0 {
-		err = db.Debug().Model(&Rental{}).Where("id = ?", p.UserID).Take(&p.User).Error
-		if err != nil {
-			return &Rental{}, err
-		}
+
+	return &r, nil
+}
+func (p *Rental) FindRentalCarID(db *gorm.DB, pid uint64) (*[]Rental, error) {
+	var err error
+	r := []Rental{}
+	err = db.Debug().Model(&Rental{}).Where("car_id = ?", pid).Find(&r).Error
+	if err != nil {
+		return &[]Rental{}, err
 	}
-	return p, nil
+	fmt.Println("*** FindRenatlCar:", r)
+
+	return &r, nil
 }
 
 func (p *Rental) UpdateARental(db *gorm.DB, pid uint64) (*Rental, error) {
@@ -95,7 +87,7 @@ func (p *Rental) UpdateARental(db *gorm.DB, pid uint64) (*Rental, error) {
 		map[string]interface{}{
 			"car_id":          p.CarID,
 			"user_id":         p.UserID,
-			"pick_uplocation": p.PickupLocation,
+			"pickup_location": p.PickupLocation,
 			"start_date":      p.StartDate,
 			"end_date":        p.EndDate,
 			"updated_at":      time.Now(),

@@ -2,6 +2,7 @@ package models
 
 import (
 	"errors"
+	"fmt"
 	"html"
 	"strings"
 	"time"
@@ -9,10 +10,9 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-//COmment
 type CarLocation struct {
 	ID        uint32    `gorm:"primary_key;auto_increment" json:"id"`
-	CarID     uint32    `gorm:"int" json:"user_id"`
+	CarID     uint32    `gorm:"int" json:"car_id"`
 	Car       Car       `json:"car"`
 	Street    string    `json:"street"`
 	City      string    `json:"city"`
@@ -49,12 +49,15 @@ func (p *CarLocation) Validate() error {
 
 func (p *CarLocation) SaveCarLocation(db *gorm.DB) (*CarLocation, error) {
 	var err error
-	err = db.Debug().Model(&Car{}).Create(&p).Error
+	err = db.Debug().Model(&CarLocation{}).Create(&p).Error
 	if err != nil {
 		return &CarLocation{}, err
 	}
+	fmt.Println("*** SaveCarLocation", p.CarID)
+	fmt.Println("*** SaveCarLocation p", p)
+	fmt.Println("*** SaveCarLocation p", p.Car)
 	if p.ID != 0 {
-		err = db.Debug().Model(&Car{}).Where("id = ?", p.CarID).Take(&p.Car).Error
+		err = db.Debug().Model(&CarLocation{}).Where("id = ?", p.CarID).Take(&p.Car).Error
 		if err != nil {
 			return &CarLocation{}, err
 		}
@@ -69,6 +72,7 @@ func (p *CarLocation) FindAllCarsLocation(db *gorm.DB) (*[]CarLocation, error) {
 	if err != nil {
 		return &[]CarLocation{}, err
 	}
+
 	if len(posts) > 0 {
 		for i, _ := range posts {
 			err := db.Debug().Model(&CarLocation{}).Where("id = ?", posts[i].CarID).Take(&posts[i].Car).Error
@@ -82,12 +86,12 @@ func (p *CarLocation) FindAllCarsLocation(db *gorm.DB) (*[]CarLocation, error) {
 
 func (p *CarLocation) FindCarLocationByID(db *gorm.DB, pid uint64) (*CarLocation, error) {
 	var err error
-	err = db.Debug().Model(&Car{}).Where("id = ?", pid).Take(&p).Error
+	err = db.Debug().Model(&CarLocation{}).Where("id = ?", pid).Take(&p).Error
 	if err != nil {
 		return &CarLocation{}, err
 	}
 	if p.ID != 0 {
-		err = db.Debug().Model(&Car{}).Where("id = ?", p.CarID).Take(&p.Car).Error
+		err = db.Debug().Model(&CarLocation{}).Where("id = ?", p.CarID).Take(&p.Car).Error
 		if err != nil {
 			return &CarLocation{}, err
 		}
@@ -121,7 +125,7 @@ func (p *CarLocation) UpdateACarLocation(db *gorm.DB, pid uint64) (*CarLocation,
 	return p, nil
 }
 
-func (p *CarLocation) DeleteACar(db *gorm.DB, pid uint64, uid uint32) (int64, error) {
+func (p *CarLocation) DeleteACarLocation(db *gorm.DB, pid uint64, uid uint32) (int64, error) {
 
 	db = db.Debug().Model(&CarLocation{}).Where("id = ? and car_id = ?", pid, uid).Take(&CarLocation{}).Delete(&CarLocation{})
 

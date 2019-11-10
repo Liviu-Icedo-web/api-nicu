@@ -10,9 +10,10 @@ import (
 	"strconv"
 
 	"api-nicu/api/auth"
-	"api-nicu/api/models"
 	"api-nicu/api/responses"
 	"api-nicu/api/utils/formaterror"
+
+	"api-nicu/api/models"
 
 	"github.com/gorilla/mux"
 )
@@ -24,31 +25,37 @@ func (server *Server) CreateCarLocation(w http.ResponseWriter, r *http.Request) 
 		responses.ERROR(w, http.StatusUnprocessableEntity, err)
 		return
 	}
-	car := models.CarLocation{}
-	err = json.Unmarshal(body, &car)
+
+	fmt.Println("*** Car Controller body", body)
+	carlocation := models.CarLocation{}
+	err = json.Unmarshal(body, &carlocation)
 	if err != nil {
 		responses.ERROR(w, http.StatusUnprocessableEntity, err)
 		return
 	}
+	fmt.Println("*** Car Controller body", body)
+	fmt.Println("*** Car Controller body car", carlocation)
 
-	car.Prepare()
-	err = car.Validate()
+	carlocation.Prepare()
+	err = carlocation.Validate()
 	if err != nil {
 		responses.ERROR(w, http.StatusUnprocessableEntity, err)
 		return
 	}
 	uid, err := auth.ExtractTokenID(r)
-	car.CarID = uid
-
+	car := models.Car{}
+	err = server.DB.Debug().Model(models.Car{}).Where("id = ?", carlocation.CarID).Take(&car).Error
 	if err != nil {
-		responses.ERROR(w, http.StatusUnauthorized, errors.New("Unauthorized"))
+		responses.ERROR(w, http.StatusNotFound, errors.New("User don't own this car_id: "+string(carlocation.CarID)))
 		return
 	}
-	if uid != car.UserID {
-		responses.ERROR(w, http.StatusUnauthorized, errors.New(http.StatusText(http.StatusUnauthorized)))
+
+	if uid != car.User_id {
+		responses.ERROR(w, http.StatusUnauthorized, errors.New(http.StatusText(http.StatusUnauthorized)+" User don't own this car_id: "+string(carlocation.CarID)))
 		return
 	}
-	carCreated, err := car.SaveCarLocation(server.DB)
+	fmt.Println("*** Car Controller", car)
+	carCreated, err := carlocation.SaveCarLocation(server.DB)
 	if err != nil {
 
 		formattedError := formaterror.FormatError(err.Error())
@@ -60,11 +67,11 @@ func (server *Server) CreateCarLocation(w http.ResponseWriter, r *http.Request) 
 	responses.JSON(w, http.StatusCreated, carCreated)
 }
 
-func (server *Server) GetCars(w http.ResponseWriter, r *http.Request) {
+func (server *Server) GetCarsLocation(w http.ResponseWriter, r *http.Request) {
 
-	car := models.Car{}
+	car := models.CarLocation{}
 
-	cars, err := car.FindAllCars(server.DB)
+	cars, err := car.FindAllCarsLocation(server.DB)
 	if err != nil {
 		responses.ERROR(w, http.StatusInternalServerError, err)
 		return
@@ -73,7 +80,7 @@ func (server *Server) GetCars(w http.ResponseWriter, r *http.Request) {
 	responses.JSON(w, http.StatusOK, cars)
 }
 
-func (server *Server) GetCar(w http.ResponseWriter, r *http.Request) {
+func (server *Server) GetCarLocation(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
 	pid, err := strconv.ParseUint(vars["id"], 10, 64)
@@ -81,9 +88,9 @@ func (server *Server) GetCar(w http.ResponseWriter, r *http.Request) {
 		responses.ERROR(w, http.StatusBadRequest, err)
 		return
 	}
-	car := models.Car{}
+	car := models.CarLocation{}
 
-	carReceived, err := car.FindCarByID(server.DB, pid)
+	carReceived, err := car.FindCarLocationByID(server.DB, pid)
 	if err != nil {
 		responses.ERROR(w, http.StatusInternalServerError, err)
 		return
@@ -91,7 +98,7 @@ func (server *Server) GetCar(w http.ResponseWriter, r *http.Request) {
 	responses.JSON(w, http.StatusOK, carReceived)
 }
 
-func (server *Server) UpdateCar(w http.ResponseWriter, r *http.Request) {
+func (server *Server) UpdateCarLocation(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
 
@@ -111,20 +118,22 @@ func (server *Server) UpdateCar(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check if the car exist
-	car := models.Car{}
-	err = server.DB.Debug().Model(models.Car{}).Where("id = ?", pid).Take(&car).Error
+	carlocation := models.CarLocation{}
+	err = server.DB.Debug().Model(models.CarLocation{}).Where("id = ?", pid).Take(&carlocation).Error
 	if err != nil {
 		responses.ERROR(w, http.StatusNotFound, errors.New("Car not found"))
 		return
 	}
 
-	fmt.Printf("User id: %v", uid)
-	fmt.Printf("\n Car id: %v", car.ID)
-	fmt.Printf("\n First check: %v", car.User_id)
-
+	car := models.Car{}
+	err = server.DB.Debug().Model(models.Car{}).Where("id = ?", carlocation.CarID).Take(&car).Error
+	if err != nil {
+		responses.ERROR(w, http.StatusNotFound, errors.New("Database error: User don't own this car_id: "+string(carlocation.CarID)))
+		return
+	}
 	// If a user attempt to update a car not belonging to him
 	if uid != car.User_id {
-		responses.ERROR(w, http.StatusUnauthorized, errors.New("Unauthorized"))
+		responses.ERROR(w, http.StatusUnauthorized, errors.New(http.StatusText(http.StatusUnauthorized)+" User don't own this car_id: "+string(carlocation.CarID)))
 		return
 	}
 	// Read the data cared
@@ -136,8 +145,8 @@ func (server *Server) UpdateCar(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Start processing the request data
-	carUpdate := models.Car{}
-	err = json.Unmarshal(body, &carUpdate)
+	carlocationUpdate := models.CarLocation{}
+	err = json.Unmarshal(body, &carlocationUpdate)
 	if err != nil {
 		log.Fatalln(err)
 		responses.ERROR(w, http.StatusUnprocessableEntity, err)
@@ -145,25 +154,32 @@ func (server *Server) UpdateCar(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//Also check if the request user id is equal to the one gotten from token
+	fmt.Printf("\n **** carUpdate %v", carlocationUpdate)
 
-	fmt.Printf("\n User id %v", uid)
-	fmt.Printf("\n carUpdate.User_id %v", carUpdate.User_id)
-	fmt.Printf("\n **** carUpdate %v", carUpdate)
-	if uid != carUpdate.User_id {
-		responses.ERROR(w, http.StatusUnauthorized, errors.New("Unauthorized"))
+	carUpdate := models.Car{}
+	err = server.DB.Debug().Model(models.Car{}).Where("id = ?", carlocation.CarID).Take(&carUpdate).Error
+	if err != nil {
+		responses.ERROR(w, http.StatusNotFound, errors.New("User don't own this car_id: "+string(carlocation.CarID)))
 		return
 	}
 
-	carUpdate.Prepare()
-	err = carUpdate.Validate()
+	fmt.Println("*** Updatecar UID ", uid)
+	fmt.Println("*** Updatecar car to update ", carUpdate)
+	if uid != carUpdate.User_id {
+		responses.ERROR(w, http.StatusUnauthorized, errors.New(http.StatusText(http.StatusUnauthorized)+" User don't own this car_id: "+string(carlocationUpdate.CarID)))
+		return
+	}
+
+	carlocationUpdate.Prepare()
+	err = carlocationUpdate.Validate()
 	fmt.Printf("Prepare  \n")
 	if err != nil {
-		fmt.Printf("Prepare  *****\n")
 		responses.ERROR(w, http.StatusUnprocessableEntity, err)
 		return
 	}
 
-	carUpdated, err := carUpdate.UpdateACar(server.DB, pid)
+	// carlocationUpdate, err := carlocationUpdate.UpdateACarLocation(server.DB, pid)
+	carlocUpdate, err := carlocationUpdate.UpdateACarLocation(server.DB, pid)
 
 	if err != nil {
 		log.Fatal(err)
@@ -171,10 +187,10 @@ func (server *Server) UpdateCar(w http.ResponseWriter, r *http.Request) {
 		responses.ERROR(w, http.StatusInternalServerError, formattedError)
 		return
 	}
-	responses.JSON(w, http.StatusOK, carUpdated)
+	responses.JSON(w, http.StatusOK, carlocUpdate)
 }
 
-func (server *Server) DeleteCar(w http.ResponseWriter, r *http.Request) {
+func (server *Server) DeleteCarLocation(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
 
@@ -192,24 +208,31 @@ func (server *Server) DeleteCar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check if the car exist
-	car := models.Car{}
-	err = server.DB.Debug().Model(models.Car{}).Where("id = ?", pid).Take(&car).Error
+	// Check if the carlocation exist
+	carLocation := models.CarLocation{}
+	err = server.DB.Debug().Model(models.CarLocation{}).Where("id = ?", pid).Take(&carLocation).Error
 	if err != nil {
-		responses.ERROR(w, http.StatusNotFound, errors.New("Unauthorized"))
+		responses.ERROR(w, http.StatusNotFound, errors.New("No Location_id: "+string(pid)+" into database"))
 		return
 	}
 
 	// Is the authenticated user, the owner of this car?
-	if uid != car.User_id {
-		responses.ERROR(w, http.StatusUnauthorized, errors.New("Unauthorized"))
+	car := models.Car{}
+	err = server.DB.Debug().Model(models.Car{}).Where("id = ?", carLocation.CarID).Take(&car).Error
+	if err != nil {
+		responses.ERROR(w, http.StatusNotFound, errors.New("We dont find a car_location for this car_id: "+string(carLocation.CarID)))
 		return
 	}
-	_, err = car.DeleteACar(server.DB, pid, uid)
+
+	if uid != car.User_id {
+		responses.ERROR(w, http.StatusUnauthorized, errors.New("Unauthorized User dont owen this car"))
+		return
+	}
+	_, err = carLocation.DeleteACarLocation(server.DB, pid, uid)
 	if err != nil {
 		responses.ERROR(w, http.StatusBadRequest, err)
 		return
 	}
 	w.Header().Set("Entity", fmt.Sprintf("%d", pid))
-	responses.JSON(w, http.StatusNoContent, "")
+	responses.JSON(w, http.StatusOK, "Location: "+string(pid)+" delete")
 }

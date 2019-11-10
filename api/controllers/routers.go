@@ -25,10 +25,17 @@ func (s *Server) initializeRoutes() {
 	s.Router.HandleFunc("/cars/{id}", middlewares.SetMiddlewareJSON(middlewares.SetMiddlewareAuthentication(s.UpdateCar))).Methods("PUT", "OPTIONS")
 	s.Router.HandleFunc("/cars/{id}", middlewares.SetMiddlewareAuthentication(s.DeleteCar)).Methods("DELETE", "OPTIONS")
 
-	//Cars locations routes
-	s.Router.HandleFunc("/car-location/{id}", middlewares.SetMiddlewareJSON(s.CreateCarLocation)).Methods("POST", "OPTIONS")
-	s.Router.HandleFunc("/cars", middlewares.SetMiddlewareJSON(s.GetCars)).Methods("GET", "OPTIONS")
-	s.Router.HandleFunc("/cars/{id}", middlewares.SetMiddlewareJSON(s.GetCar)).Methods("GET", "OPTIONS")
-	s.Router.HandleFunc("/cars/{id}", middlewares.SetMiddlewareJSON(middlewares.SetMiddlewareAuthentication(s.UpdateCar))).Methods("PUT", "OPTIONS")
-	s.Router.HandleFunc("/cars/{id}", middlewares.SetMiddlewareAuthentication(s.DeleteCar)).Methods("DELETE", "OPTIONS")
+	//Cars location routes
+	s.Router.HandleFunc("/car-location/", middlewares.SetMiddlewareJSON(s.CreateCarLocation)).Methods("POST", "OPTIONS")
+	s.Router.HandleFunc("/cars-location/", middlewares.SetMiddlewareJSON(s.GetCarsLocation)).Methods("GET", "OPTIONS")
+	s.Router.HandleFunc("/cars-location/{id}", middlewares.SetMiddlewareJSON(s.GetCarLocation)).Methods("GET", "OPTIONS")
+	s.Router.HandleFunc("/car-location/{id}", middlewares.SetMiddlewareJSON(middlewares.SetMiddlewareAuthentication(s.UpdateCarLocation))).Methods("PUT", "OPTIONS")
+	s.Router.HandleFunc("/car-location/{id}", middlewares.SetMiddlewareAuthentication(s.DeleteCarLocation)).Methods("DELETE", "OPTIONS")
+
+	//Rental routes
+	s.Router.HandleFunc("/rental-car/", middlewares.SetMiddlewareAuthentication(s.CreateRental)).Methods("POST", "OPTIONS")
+	s.Router.HandleFunc("/rental-car/{id}", middlewares.SetMiddlewareJSON(s.GetRentalCar)).Methods("GET", "OPTIONS")
+	s.Router.HandleFunc("/rental-user/{id}", middlewares.SetMiddlewareAuthentication(s.GetRentalUser)).Methods("GET", "OPTIONS")
+	s.Router.HandleFunc("/rental-user/{id}", middlewares.SetMiddlewareJSON(middlewares.SetMiddlewareAuthentication(s.UpdateRental))).Methods("PUT", "OPTIONS")
+	s.Router.HandleFunc("/rental-user/{id}", middlewares.SetMiddlewareAuthentication(s.DeleteRentalUser)).Methods("DELETE", "OPTIONS")
 }
