@@ -145,10 +145,6 @@ func (server *Server) UpdateCar(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//Also check if the request user id is equal to the one gotten from token
-
-	fmt.Printf("\n User id %v", uid)
-	fmt.Printf("\n carUpdate.User_id %v", carUpdate.User_id)
-	fmt.Printf("\n **** carUpdate %v", carUpdate)
 	if uid != carUpdate.User_id {
 		responses.ERROR(w, http.StatusUnauthorized, errors.New("Unauthorized"))
 		return
@@ -156,9 +152,7 @@ func (server *Server) UpdateCar(w http.ResponseWriter, r *http.Request) {
 
 	carUpdate.Prepare()
 	err = carUpdate.Validate()
-	fmt.Printf("Prepare  \n")
 	if err != nil {
-		fmt.Printf("Prepare  *****\n")
 		responses.ERROR(w, http.StatusUnprocessableEntity, err)
 		return
 	}
@@ -194,13 +188,18 @@ func (server *Server) DeleteCar(w http.ResponseWriter, r *http.Request) {
 
 	// Check if the car exist
 	car := models.Car{}
+	fmt.Println("*** car UID", car)
+	fmt.Println("*** car  pid", pid)
 	err = server.DB.Debug().Model(models.Car{}).Where("id = ?", pid).Take(&car).Error
+	fmt.Println("*** car  err", err)
 	if err != nil {
 		responses.ERROR(w, http.StatusNotFound, errors.New("Unauthorized"))
 		return
 	}
 
 	// Is the authenticated user, the owner of this car?
+	fmt.Println("*** car UID", uid)
+	fmt.Println("*** car", car)
 	if uid != car.User_id {
 		responses.ERROR(w, http.StatusUnauthorized, errors.New("Unauthorized"))
 		return

@@ -20,9 +20,9 @@ type Car struct {
 	Seats     int       `gorm:"int" json:"seats"`
 	Insurance string    `gorm:"size:255;not null;unique" json:"insurance"`
 	Images    string    `gorm:"json" json:"images"`
-	Town      string    `gorm: json:"town"`
-	PriceDay  float64   `gorm: json:"price_day"`
-	PriceHour float64   `gorm: json:"price_hour"`
+	Town      string    `json:"town"`
+	PriceDay  float64   `json:"price_day"`
+	PriceHour float64   `json:"price_hour"`
 	CreatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
 }
