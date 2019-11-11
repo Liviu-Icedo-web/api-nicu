@@ -9,22 +9,24 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
+//Comment
 type Car struct {
-	ID        uint32    `gorm:"primary_key;auto_increment" json:"id"`
-	User_id   uint32    `gorm:"int" json:"user_id"`
-	Owner     User      `json:"user"`
-	Brand     string    `gorm:"size:255;not null;unique" json:"brand"`
-	Year      int       `gorm:"size:255;not null;unique" json:"year"`
-	Hp        int       `gorm:"int" json:"hp"`
-	Doors     int       `gorm:"int" json:"doors"`
-	Seats     int       `gorm:"int" json:"seats"`
-	Insurance string    `gorm:"size:255;not null;unique" json:"insurance"`
-	Images    string    `gorm:"json" json:"images"`
-	Town      string    `json:"town"`
-	PriceDay  float64   `json:"price_day"`
-	PriceHour float64   `json:"price_hour"`
-	CreatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
-	UpdatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
+	ID        uint32        `gorm:"primary_key;auto_increment" json:"id"`
+	User_id   uint32        `gorm:"int" json:"user_id"`
+	Owner     User          `json:"user"`
+	CarLoc    []CarLocation `json:"car_location"`
+	Brand     string        `gorm:"size:255;not null;unique" json:"brand"`
+	Year      int           `gorm:"size:255;not null;unique" json:"year"`
+	Hp        int           `gorm:"int" json:"hp"`
+	Doors     int           `gorm:"int" json:"doors"`
+	Seats     int           `gorm:"int" json:"seats"`
+	Insurance string        `gorm:"size:255;not null;unique" json:"insurance"`
+	Images    string        `gorm:"json" json:"images"`
+	Town      string        `json:"town"`
+	PriceDay  float64       `json:"price_day"`
+	PriceHour float64       `json:"price_hour"`
+	CreatedAt time.Time     `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
+	UpdatedAt time.Time     `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
 }
 
 func (u *Car) Prepare() {
@@ -93,6 +95,10 @@ func (p *Car) FindCarByID(db *gorm.DB, pid uint64) (*Car, error) {
 		if err != nil {
 			return &Car{}, err
 		}
+		err = db.Debug().Model([]CarLocation{}).Where("car_id = ?", p.ID).Find(&p.CarLoc).Error
+		if err != nil {
+			return &Car{}, err
+		}
 	}
 	return p, nil
 }
@@ -104,12 +110,15 @@ func (p *Car) UpdateACar(db *gorm.DB, pid uint64) (*Car, error) {
 		map[string]interface{}{
 			"user_id":    p.User_id,
 			"brand":      p.Brand,
+			"town":       p.Town,
 			"year":       p.Year,
 			"doors":      p.Doors,
 			"hp":         p.Hp,
 			"seats":      p.Seats,
 			"images":     p.Images,
 			"insurance":  p.Insurance,
+			"price_day":  p.PriceDay,
+			"price_hour": p.PriceHour,
 			"updated_at": time.Now(),
 		},
 	)

@@ -2,7 +2,6 @@ package models
 
 import (
 	"errors"
-	"fmt"
 	"html"
 	"strings"
 	"time"
@@ -13,7 +12,6 @@ import (
 type CarLocation struct {
 	ID        uint32    `gorm:"primary_key;auto_increment" json:"id"`
 	CarID     uint32    `gorm:"int" json:"car_id"`
-	Car       Car       `json:"car"`
 	Street    string    `json:"street"`
 	City      string    `json:"city"`
 	State     string    `json:"state"`
@@ -53,15 +51,7 @@ func (p *CarLocation) SaveCarLocation(db *gorm.DB) (*CarLocation, error) {
 	if err != nil {
 		return &CarLocation{}, err
 	}
-	fmt.Println("*** SaveCarLocation", p.CarID)
-	fmt.Println("*** SaveCarLocation p", p)
-	fmt.Println("*** SaveCarLocation p", p.Car)
-	if p.ID != 0 {
-		err = db.Debug().Model(&CarLocation{}).Where("id = ?", p.CarID).Take(&p.Car).Error
-		if err != nil {
-			return &CarLocation{}, err
-		}
-	}
+
 	return p, nil
 }
 
@@ -72,31 +62,31 @@ func (p *CarLocation) FindAllCarsLocation(db *gorm.DB) (*[]CarLocation, error) {
 	if err != nil {
 		return &[]CarLocation{}, err
 	}
+	return &posts, nil
+}
 
-	if len(posts) > 0 {
-		for i, _ := range posts {
-			err := db.Debug().Model(&CarLocation{}).Where("id = ?", posts[i].CarID).Take(&posts[i].Car).Error
+func (p *CarLocation) FindCarLocationByID(db *gorm.DB, pid uint64) (*[]CarLocation, error) {
+	var err error
+	res := []CarLocation{}
+	err = db.Debug().Model(&CarLocation{}).Where("car_id = ?", pid).Find(&res).Error
+	if err != nil {
+		return &[]CarLocation{}, err
+	}
+	// if p.ID != 0 {
+	// 	err = db.Debug().Model(&CarLocation{}).Where("car_id = ?", p.CarID).Take(&res).Error
+	// 	if err != nil {
+	// 		return &[]CarLocation{}, err
+	// 	}
+	// }
+	if len(res) > 0 {
+		for i, _ := range res {
+			err := db.Debug().Model(&CarLocation{}).Where("car_id = ?", res[i].CarID).Find(&res).Error
 			if err != nil {
 				return &[]CarLocation{}, err
 			}
 		}
 	}
-	return &posts, nil
-}
-
-func (p *CarLocation) FindCarLocationByID(db *gorm.DB, pid uint64) (*CarLocation, error) {
-	var err error
-	err = db.Debug().Model(&CarLocation{}).Where("id = ?", pid).Take(&p).Error
-	if err != nil {
-		return &CarLocation{}, err
-	}
-	if p.ID != 0 {
-		err = db.Debug().Model(&CarLocation{}).Where("id = ?", p.CarID).Take(&p.Car).Error
-		if err != nil {
-			return &CarLocation{}, err
-		}
-	}
-	return p, nil
+	return &res, nil
 }
 
 func (p *CarLocation) UpdateACarLocation(db *gorm.DB, pid uint64) (*CarLocation, error) {
