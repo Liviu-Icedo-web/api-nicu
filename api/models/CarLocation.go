@@ -117,13 +117,13 @@ func (p *CarLocation) UpdateACarLocation(db *gorm.DB, pid uint64) (*CarLocation,
 
 func (p *CarLocation) DeleteACarLocation(db *gorm.DB, pid uint64, uid uint32) (int64, error) {
 
-	db = db.Debug().Model(&CarLocation{}).Where("id = ? and car_id = ?", pid, uid).Take(&CarLocation{}).Delete(&CarLocation{})
-
+	db = db.Debug().Model(&CarLocation{}).Where("id = ? ", pid).Take(&CarLocation{}).Delete(&CarLocation{})
 	if db.Error != nil {
 		if gorm.IsRecordNotFoundError(db.Error) {
 			return 0, errors.New("Location not found")
 		}
 		return 0, db.Error
 	}
+
 	return db.RowsAffected, nil
 }
