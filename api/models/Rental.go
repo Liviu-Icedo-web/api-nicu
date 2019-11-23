@@ -9,14 +9,18 @@ import (
 )
 
 type Rental struct {
-	ID             uint32    `gorm:"primary_key;auto_increment" json:"id"`
-	CarID          uint32    `gorm:"int" json:"Car_id"`
-	UserID         uint32    `gorm:"int" json:"user_id"`
-	PickupLocation uint32    `gorm:"int" json:"pickup_location"`
-	StartDate      time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"start_date"`
-	EndDate        time.Time `json:"end_date"`
-	CreatedAt      time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
-	UpdatedAt      time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
+	ID              uint32        `gorm:"primary_key;auto_increment" json:"id"`
+	CarID           uint32        `gorm:"int" json:"Car_id"`
+	Car             Car           `json:"car"`
+	Owner           User          `json:"user"`
+	UserID          uint32        `gorm:"int" json:"user_id"`
+	CarLocation     []CarLocation `json:"car_location"`
+	PickupLocation  uint32        `gorm:"int" json:"pickup_location"`
+	DropoffLocation uint32        `gorm:"int" json:"dropoff_location"`
+	StartDate       time.Time     `gorm:"default:CURRENT_TIMESTAMP" json:"start_date"`
+	EndDate         time.Time     `json:"end_date"`
+	CreatedAt       time.Time     `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
+	UpdatedAt       time.Time     `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
 }
 
 func (u *Rental) Prepare() {
@@ -65,6 +69,23 @@ func (p *Rental) FindRentalUserID(db *gorm.DB, pid uint64) (*[]Rental, error) {
 	if err != nil {
 		return &[]Rental{}, err
 	}
+	if len(r) > 0 {
+		for i, _ := range r {
+			err := db.Debug().Model(&User{}).Where("id = ?", r[i].UserID).Take(&r[i].Owner).Error
+			if err != nil {
+				return &[]Rental{}, err
+			}
+			err = db.Debug().Model(&CarLocation{}).Where("car_id = ?", r[i].CarID).Find(&r[i].CarLocation).Error
+			if err != nil {
+				return &[]Rental{}, err
+			}
+			err = db.Debug().Model(&Car{}).Where("id = ?", r[i].CarID).Find(&r[i].Car).Error
+			if err != nil {
+				return &[]Rental{}, err
+			}
+
+		}
+	}
 
 	return &r, nil
 }
@@ -85,12 +106,13 @@ func (p *Rental) UpdateARental(db *gorm.DB, pid uint64) (*Rental, error) {
 	var err error
 	db = db.Debug().Model(&Rental{}).Where("id = ?", pid).Take(&Rental{}).UpdateColumns(
 		map[string]interface{}{
-			"car_id":          p.CarID,
-			"user_id":         p.UserID,
-			"pickup_location": p.PickupLocation,
-			"start_date":      p.StartDate,
-			"end_date":        p.EndDate,
-			"updated_at":      time.Now(),
+			"car_id":           p.CarID,
+			"user_id":          p.UserID,
+			"pickup_location":  p.PickupLocation,
+			"dropoff_location": p.DropoffLocation,
+			"start_date":       p.StartDate,
+			"end_date":         p.EndDate,
+			"updated_at":       time.Now(),
 		},
 	)
 	err = db.Debug().Model(&Rental{}).Where("id = ?", pid).Take(&p).Error

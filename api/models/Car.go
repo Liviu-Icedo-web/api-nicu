@@ -79,6 +79,11 @@ func (p *Car) FindAllCars(db *gorm.DB) (*[]Car, error) {
 			if err != nil {
 				return &[]Car{}, err
 			}
+			err = db.Debug().Model(&CarLocation{}).Where("car_id = ?", posts[i].ID).Find(&posts[i].CarLoc).Error
+			if err != nil {
+				return &[]Car{}, err
+			}
+
 		}
 	}
 	return &posts, nil

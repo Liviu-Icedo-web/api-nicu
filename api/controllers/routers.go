@@ -35,7 +35,7 @@ func (s *Server) initializeRoutes() {
 	//Rental routes
 	s.Router.HandleFunc("/rental-car/", middlewares.SetMiddlewareAuthentication(s.CreateRental)).Methods("POST", "OPTIONS")
 	s.Router.HandleFunc("/rental-car/{id}", middlewares.SetMiddlewareJSON(s.GetRentalCar)).Methods("GET", "OPTIONS")
-	s.Router.HandleFunc("/rental-user/{id}", middlewares.SetMiddlewareAuthentication(s.GetRentalUser)).Methods("GET", "OPTIONS")
+	s.Router.HandleFunc("/rental-user/{id}", middlewares.SetMiddlewareJSON(middlewares.SetMiddlewareAuthentication(s.GetRentalUser))).Methods("GET", "OPTIONS")
 	s.Router.HandleFunc("/rental-user/{id}", middlewares.SetMiddlewareJSON(middlewares.SetMiddlewareAuthentication(s.UpdateRental))).Methods("PUT", "OPTIONS")
 	s.Router.HandleFunc("/rental-user/{id}", middlewares.SetMiddlewareAuthentication(s.DeleteRentalUser)).Methods("DELETE", "OPTIONS")
 }

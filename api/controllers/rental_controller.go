@@ -74,7 +74,7 @@ func (server *Server) GetRentalUser(w http.ResponseWriter, r *http.Request) {
 
 	uid, err := auth.ExtractTokenID(r)
 	if uid != uint32(pid) {
-		responses.ERROR(w, http.StatusUnauthorized, errors.New(http.StatusText(http.StatusUnauthorized)+" Not the same user logged as the one passed to /rental-car/ "))
+		responses.ERROR(w, http.StatusUnauthorized, errors.New(http.StatusText(http.StatusUnauthorized)+" Not the same user logged as the one passed to /rental-user/ "))
 		return
 	}
 
