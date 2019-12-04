@@ -96,6 +96,15 @@ func (p *Rental) FindRentalCarID(db *gorm.DB, pid uint64) (*[]Rental, error) {
 	if err != nil {
 		return &[]Rental{}, err
 	}
+	if len(r) > 0 {
+		for i, _ := range r {
+			err = db.Debug().Model(&Car{}).Where("id = ?", r[i].CarID).Find(&r[i].Car).Error
+			if err != nil {
+				return &[]Rental{}, err
+			}
+
+		}
+	}
 	fmt.Println("*** FindRenatlCar:", r)
 
 	return &r, nil
