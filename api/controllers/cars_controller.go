@@ -91,6 +91,24 @@ func (server *Server) GetCar(w http.ResponseWriter, r *http.Request) {
 	responses.JSON(w, http.StatusOK, carReceived)
 }
 
+func (server *Server) GetCarbyUser(w http.ResponseWriter, r *http.Request) {
+
+	vars := mux.Vars(r)
+	pid, err := strconv.ParseUint(vars["id"], 10, 64)
+	if err != nil {
+		responses.ERROR(w, http.StatusBadRequest, err)
+		return
+	}
+	car := models.Car{}
+
+	carReceived, err := car.FindCarByUserID(server.DB, pid)
+	if err != nil {
+		responses.ERROR(w, http.StatusInternalServerError, err)
+		return
+	}
+	responses.JSON(w, http.StatusOK, carReceived)
+}
+
 func (server *Server) UpdateCar(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)

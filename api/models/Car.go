@@ -108,6 +108,17 @@ func (p *Car) FindCarByID(db *gorm.DB, pid uint64) (*Car, error) {
 	return p, nil
 }
 
+func (p *Car) FindCarByUserID(db *gorm.DB, pid uint64) (*[]Car, error) {
+	var err error
+	res := []Car{}
+	err = db.Debug().Model(&Car{}).Where("user_id = ?", pid).Find(&res).Error
+	if err != nil {
+		return &[]Car{}, err
+
+	}
+	return &res, nil
+}
+
 func (p *Car) UpdateACar(db *gorm.DB, pid uint64) (*Car, error) {
 
 	var err error

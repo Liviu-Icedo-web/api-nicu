@@ -104,6 +104,24 @@ func (server *Server) GetRentalCar(w http.ResponseWriter, r *http.Request) {
 	responses.JSON(w, http.StatusOK, rentalList)
 }
 
+func (server *Server) GetRentalOwner(w http.ResponseWriter, r *http.Request) {
+
+	vars := mux.Vars(r)
+	pid, err := strconv.ParseUint(vars["id"], 10, 32)
+	if err != nil {
+		responses.ERROR(w, http.StatusBadRequest, err)
+		return
+	}
+
+	rental := models.Rental{}
+	rentalList, err := rental.FindUserOwnerRentals(server.DB, pid)
+	if err != nil {
+		responses.ERROR(w, http.StatusInternalServerError, err)
+		return
+	}
+	responses.JSON(w, http.StatusOK, rentalList)
+}
+
 func (server *Server) UpdateRental(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)

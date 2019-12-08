@@ -2,7 +2,6 @@ package models
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -14,6 +13,7 @@ type Rental struct {
 	Car             Car           `json:"car"`
 	Owner           User          `json:"user"`
 	UserID          uint32        `gorm:"int" json:"user_id"`
+	UserOwnerID     uint32        `gorm:"int" json:"user_owner_id"`
 	CarLocation     []CarLocation `json:"car_location"`
 	PickupLocation  uint32        `gorm:"int" json:"pickup_location"`
 	DropoffLocation uint32        `gorm:"int" json:"dropoff_location"`
@@ -52,14 +52,34 @@ func (p *Rental) SaveRental(db *gorm.DB) (*Rental, error) {
 	return p, nil
 }
 
-func (p *Rental) FindUserRentals(db *gorm.DB) (*[]Rental, error) {
+func (p *Rental) FindUserOwnerRentals(db *gorm.DB, pid uint64) (*[]Rental, error) {
 	var err error
-	posts := []Rental{}
-	err = db.Debug().Model(&Rental{}).Limit(100).Find(&posts).Error
+	rentals := []Rental{}
+	err = db.Debug().Model(&Rental{}).Where("user_owner_id=?", pid).Find(&rentals).Error
 	if err != nil {
 		return &[]Rental{}, err
 	}
-	return &posts, nil
+	if err != nil {
+		return &[]Rental{}, err
+	}
+	if len(rentals) > 0 {
+		for i, _ := range rentals {
+			err := db.Debug().Model(&User{}).Where("id = ?", rentals[i].UserID).Take(&rentals[i].Owner).Error
+			if err != nil {
+				return &[]Rental{}, err
+			}
+			err = db.Debug().Model(&CarLocation{}).Where("car_id = ?", rentals[i].CarID).Find(&rentals[i].CarLocation).Error
+			if err != nil {
+				return &[]Rental{}, err
+			}
+			err = db.Debug().Model(&Car{}).Where("id = ?", rentals[i].CarID).Find(&rentals[i].Car).Error
+			if err != nil {
+				return &[]Rental{}, err
+			}
+
+		}
+	}
+	return &rentals, nil
 }
 
 func (p *Rental) FindRentalUserID(db *gorm.DB, pid uint64) (*[]Rental, error) {
@@ -105,7 +125,6 @@ func (p *Rental) FindRentalCarID(db *gorm.DB, pid uint64) (*[]Rental, error) {
 
 		}
 	}
-	fmt.Println("*** FindRenatlCar:", r)
 
 	return &r, nil
 }

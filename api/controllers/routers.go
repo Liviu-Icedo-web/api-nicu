@@ -22,6 +22,7 @@ func (s *Server) initializeRoutes() {
 	s.Router.HandleFunc("/cars", middlewares.SetMiddlewareJSON(s.CreateCar)).Methods("POST", "OPTIONS")
 	s.Router.HandleFunc("/cars", middlewares.SetMiddlewareJSON(s.GetCars)).Methods("GET", "OPTIONS")
 	s.Router.HandleFunc("/cars/{id}", middlewares.SetMiddlewareJSON(s.GetCar)).Methods("GET", "OPTIONS")
+	s.Router.HandleFunc("/cars-user/{id}", middlewares.SetMiddlewareJSON(s.GetCarbyUser)).Methods("GET", "OPTIONS")
 	s.Router.HandleFunc("/cars/{id}", middlewares.SetMiddlewareJSON(middlewares.SetMiddlewareAuthentication(s.UpdateCar))).Methods("PUT", "OPTIONS")
 	s.Router.HandleFunc("/cars/{id}", middlewares.SetMiddlewareAuthentication(s.DeleteCar)).Methods("DELETE", "OPTIONS")
 
@@ -35,6 +36,7 @@ func (s *Server) initializeRoutes() {
 	//Rental routes
 	s.Router.HandleFunc("/rental-car/", middlewares.SetMiddlewareAuthentication(s.CreateRental)).Methods("POST", "OPTIONS")
 	s.Router.HandleFunc("/rental-car/{id}", middlewares.SetMiddlewareJSON(s.GetRentalCar)).Methods("GET", "OPTIONS")
+	s.Router.HandleFunc("/rental-owners/{id}", middlewares.SetMiddlewareJSON(s.GetRentalOwner)).Methods("GET", "OPTIONS")
 	s.Router.HandleFunc("/rental-user/{id}", middlewares.SetMiddlewareJSON(middlewares.SetMiddlewareAuthentication(s.GetRentalUser))).Methods("GET", "OPTIONS")
 	s.Router.HandleFunc("/rental-user/{id}", middlewares.SetMiddlewareJSON(middlewares.SetMiddlewareAuthentication(s.UpdateRental))).Methods("PUT", "OPTIONS")
 	s.Router.HandleFunc("/rental-user/{id}", middlewares.SetMiddlewareAuthentication(s.DeleteRentalUser)).Methods("DELETE", "OPTIONS")
