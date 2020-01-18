@@ -17,6 +17,7 @@ type Rental struct {
 	CarLocation     []CarLocation `json:"car_location"`
 	PickupLocation  uint32        `gorm:"int" json:"pickup_location"`
 	DropoffLocation uint32        `gorm:"int" json:"dropoff_location"`
+	Status          string        `json:"status"`
 	StartDate       time.Time     `gorm:"default:CURRENT_TIMESTAMP" json:"start_date"`
 	EndDate         time.Time     `json:"end_date"`
 	CreatedAt       time.Time     `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
