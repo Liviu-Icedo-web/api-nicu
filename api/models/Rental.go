@@ -130,10 +130,12 @@ func (p *Rental) FindRentalCarID(db *gorm.DB, pid uint64) (*[]Rental, error) {
 	return &r, nil
 }
 
-func (p *Rental) UpdateARental(db *gorm.DB, pid uint64) (*Rental, error) {
+func (p *Rental) UpdateARental(db *gorm.DB, up *gorm.DB, pid uint64) (*[]Rental, error) {
 
 	var err error
-	db = db.Debug().Model(&Rental{}).Where("id = ?", pid).Take(&Rental{}).UpdateColumns(
+	rental := []Rental{}
+
+	up.Debug().Model(&Rental{}).Where("id = ?", pid).Take(&Rental{}).UpdateColumns(
 		map[string]interface{}{
 			"car_id":           p.CarID,
 			"user_id":          p.UserID,
@@ -144,17 +146,43 @@ func (p *Rental) UpdateARental(db *gorm.DB, pid uint64) (*Rental, error) {
 			"updated_at":       time.Now(),
 		},
 	)
-	err = db.Debug().Model(&Rental{}).Where("id = ?", pid).Take(&p).Error
+
+	err = db.Debug().Model(&Rental{}).Where("id = ?", pid).Find(&rental).Error
 	if err != nil {
-		return &Rental{}, err
+		return &[]Rental{}, err
 	}
+	// fmt.Println("RRRRR", rental)
+
+	if len(rental) > 0 {
+		for i, _ := range rental {
+			err = db.Debug().Model(&CarLocation{}).Where("car_id = ?", rental[i].CarID).Find(&rental[i].CarLocation).Error
+			if err != nil {
+				return &[]Rental{}, err
+			}
+
+		}
+	}
+
+	// err = db.Debug().Model(&CarLocation{}).Where("car_id = ?", rental.CarID).Find(rental.CarLocation).Error
+
+	// fmt.Println("RRRRR", err)
+
+	// if err != nil {
+	// 	fmt.Println("EEEE", err)
+	// 	//return rental, err
+	// }
+
+	// err = db.Debug().Model(&Rental{}).Where("car_id = ?", rental.CarID).Find(&rental.CarLocation).Error
+	// if err != nil {
+	// 	return &Rental{}, err
+	// }
 	/*if p.ID != 0 { LIVIU AREGLA ESTO, cuando haces un UPDATE no guarda bien el owner.Aun que  no lo necesitas
 		err = db.Debug().Model(&User{}).Where("id = ?", p.User_id).Take(&p.Owner).Error
 		if err != nil {
 			return &Rental{}, err
 		}
 	}*/
-	return p, nil
+	return &rental, nil
 }
 
 func (p *Rental) DeleteARental(db *gorm.DB, pid uint64, uid uint32) (int64, error) {

@@ -187,7 +187,7 @@ func (server *Server) UpdateRental(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// carlocationUpdate, err := carlocationUpdate.UpdateACarLocation(server.DB, pid)
-	rentUpdate, err := rentalUpdate.UpdateARental(server.DB, pid)
+	rentUpdate, err := rentalUpdate.UpdateARental(server.DB, server.DB, pid)
 
 	if err != nil {
 		log.Fatal(err)
