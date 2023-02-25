@@ -9,6 +9,6 @@ require (
 	github.com/jinzhu/gorm v1.9.11
 	github.com/joho/godotenv v1.3.0
 	github.com/rs/cors v1.7.0
-	golang.org/x/crypto v0.0.0-20191108234033-bd318be0434a
+	golang.org/x/crypto v0.1.0
 	google.golang.org/appengine v1.6.5 // indirect
 )
